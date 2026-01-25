@@ -1,0 +1,8 @@
+{
+  "name": "MINDA",
+  "description": "An empathetic, AI-powered mental health companion providing 24/7 emotional support, mood tracking, and evidence-based coping exercises.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ]
+}
