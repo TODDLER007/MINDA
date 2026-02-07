@@ -29,7 +29,6 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ onDiscussMood }) => {
   });
 
   const [todayScore, setTodayScore] = useState<number | null>(null);
-  const [journalNote, setJournalNote] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -38,15 +37,15 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ onDiscussMood }) => {
 
   const handleMoodSelect = (score: number) => {
     setTodayScore(score);
+    // Auto-save when a mood is clicked to remove the "Log" button bar
+    saveEntry(score);
   };
 
-  const saveEntry = () => {
-    if (todayScore === null) return;
+  const saveEntry = (score: number) => {
     const today = new Date().toLocaleDateString('en-US', { weekday: 'short' });
     const newEntry: MoodEntry = { 
       date: today, 
-      score: todayScore,
-      note: journalNote
+      score: score
     };
     
     setEntries((prev) => {
@@ -64,8 +63,7 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ onDiscussMood }) => {
 
   const discussCurrentMood = () => {
     const moodLabel = ['awful', 'poor', 'okay', 'good', 'great'][todayScore! - 1];
-    let msg = `I just logged that I'm feeling ${moodLabel}.`;
-    if (journalNote) msg += ` I noted: "${journalNote}". Can we talk about this?`;
+    let msg = `I just logged that I'm feeling ${moodLabel}. Can we talk about this?`;
     onDiscussMood(msg);
   };
 
@@ -74,74 +72,64 @@ const MoodTracker: React.FC<MoodTrackerProps> = ({ onDiscussMood }) => {
   const averageMood = (entries.reduce((acc, curr) => acc + curr.score, 0) / entries.length).toFixed(1);
 
   return (
-    <div className="p-4 md:p-8 h-full bg-white overflow-y-auto custom-scrollbar pb-24 md:pb-8">
+    <div className="p-4 md:p-8 h-full bg-[#fdfdfd] overflow-y-auto custom-scrollbar pb-24 md:pb-8">
       <div className="max-w-4xl mx-auto space-y-12">
         <section className="text-center animate-in fade-in slide-in-from-top-4 duration-500">
-          <h2 className="text-3xl font-bold text-slate-800 mb-2">How are you feeling today?</h2>
-          <p className="text-slate-500 mb-8 max-w-lg mx-auto">Tracking your mood helps MINDA understand you better.</p>
+          <h2 className="text-3xl font-black text-slate-800 mb-2 tracking-tight">How are you feeling right now?</h2>
+          <p className="text-slate-400 mb-10 max-w-lg mx-auto font-medium">Your mood history helps MINDA personalize your support.</p>
           
-          <div className="flex flex-wrap justify-center gap-3 md:gap-6 mb-8">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-8">
             {moodEmojis.map((emoji, idx) => (
               <button
                 key={idx}
                 onClick={() => handleMoodSelect(idx + 1)}
-                className={`group flex flex-col items-center gap-2 p-4 md:p-5 rounded-3xl transition-all duration-300 border-2 ${
+                className={`group flex flex-col items-center gap-3 p-5 md:p-7 rounded-[2.5rem] transition-all duration-300 border-2 ${
                   todayScore === idx + 1 
                     ? 'bg-indigo-600 border-indigo-600 shadow-xl scale-110' 
-                    : 'bg-white border-slate-100 hover:border-indigo-200 shadow-sm'
+                    : 'bg-white border-slate-100 hover:border-indigo-100 shadow-sm'
                 }`}
               >
-                <span className="text-3xl md:text-4xl">{emoji}</span>
-                <span className={`text-[10px] font-bold uppercase ${todayScore === idx + 1 ? 'text-white' : 'text-slate-400'}`}>
+                <span className="text-4xl md:text-5xl">{emoji}</span>
+                <span className={`text-[10px] font-black uppercase tracking-widest ${todayScore === idx + 1 ? 'text-white' : 'text-slate-400'}`}>
                   {labels[idx]}
                 </span>
               </button>
             ))}
           </div>
 
-          {todayScore !== null && !showSuccess && (
-            <div className="animate-in zoom-in-95 duration-200 max-w-md mx-auto">
-              <textarea
-                value={journalNote}
-                onChange={(e) => setJournalNote(e.target.value)}
-                placeholder="What's contributing to this feeling?"
-                className="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none mb-4 min-h-[100px] text-sm"
-              />
-              <button onClick={saveEntry} className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-indigo-700 active:scale-95 transition-all">
-                Log My Mood
-              </button>
-            </div>
-          )}
-
           {showSuccess && (
-            <div className="animate-in slide-in-from-bottom-4 bg-emerald-50 border border-emerald-100 p-6 rounded-3xl max-w-md mx-auto">
-              <p className="text-emerald-700 font-bold mb-4">Mood Logged Successfully! ✨</p>
+            <div className="animate-in slide-in-from-bottom-4 bg-indigo-50 border border-indigo-100 p-8 rounded-[3rem] max-w-md mx-auto shadow-sm">
+              <p className="text-indigo-700 font-black uppercase tracking-widest text-xs mb-6">Mood Logged! ✨</p>
               <button 
                 onClick={discussCurrentMood}
-                className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold shadow-md hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-2 mx-auto"
+                className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-3 mx-auto"
               >
-                <span>💬 Discuss this with MINDA</span>
+                <span>Discuss with MINDA</span>
+                <span className="text-lg">💬</span>
               </button>
             </div>
           )}
         </section>
 
-        <section className="bg-white border border-slate-100 rounded-[2.5rem] p-6 md:p-8 shadow-sm">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xl font-bold text-slate-800">Your Progress</h3>
-            <div className="bg-indigo-50 px-4 py-2 rounded-2xl">
-              <span className="text-2xl font-black text-indigo-600">{averageMood}</span>
-              <span className="text-[10px] text-indigo-400 font-bold uppercase ml-2 tracking-tighter">Avg Score</span>
+        <section className="bg-white border border-slate-100 rounded-[3rem] p-8 md:p-12 shadow-sm">
+          <div className="flex justify-between items-center mb-10">
+            <div>
+              <h3 className="text-xl font-black text-slate-800">Weekly Progress</h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Mood trends over the last 7 days</p>
+            </div>
+            <div className="bg-indigo-50 px-6 py-3 rounded-2xl border border-indigo-100">
+              <span className="text-3xl font-black text-indigo-600 tracking-tighter">{averageMood}</span>
+              <span className="text-[10px] text-indigo-400 font-black uppercase ml-2 tracking-widest">Avg</span>
             </div>
           </div>
-          <div className="h-[250px] w-full">
+          <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={entries}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={15} />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 700 }} dy={15} />
                 <YAxis hide domain={[0, 6]} />
-                <Tooltip cursor={{ stroke: '#e2e8f0' }} contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.1)' }} />
-                <Line type="monotone" dataKey="score" stroke="#4f46e5" strokeWidth={5} dot={{ r: 6, fill: '#4f46e5', stroke: '#fff', strokeWidth: 2 }} />
+                <Tooltip cursor={{ stroke: '#e2e8f0' }} contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }} />
+                <Line type="monotone" dataKey="score" stroke="#4f46e5" strokeWidth={6} dot={{ r: 8, fill: '#4f46e5', stroke: '#fff', strokeWidth: 3 }} activeDot={{ r: 10, fill: '#4f46e5', stroke: '#fff', strokeWidth: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
